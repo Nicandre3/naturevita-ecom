@@ -2,11 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingBag, Heart, User } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import CartModal from "./CartModal";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [showCart, setShowCart] = useState(false);
   const location = useLocation();
+  const { cartCount, favoritesCount } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,16 +65,24 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <Button variant="ghost" size="sm" className="relative">
               <Heart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs flex items-center justify-center text-accent-foreground">2</span>
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs flex items-center justify-center text-accent-foreground">
+                  {favoritesCount}
+                </span>
+              )}
             </Button>
-            <Button variant="ghost" size="sm" className="relative">
+            <Button variant="ghost" size="sm" className="relative" onClick={() => setShowCart(true)}>
               <ShoppingBag className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs flex items-center justify-center text-accent-foreground">0</span>
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs flex items-center justify-center text-accent-foreground">
+                  {cartCount}
+                </span>
+              )}
             </Button>
             <Button variant="ghost" size="sm">
               <User className="w-5 h-5" />
             </Button>
-            <Button className="btn-hero">
+            <Button className="btn-hero" onClick={() => setShowCart(true)}>
               Commander
             </Button>
           </div>
@@ -108,23 +120,33 @@ const Header = () => {
               <div className="flex items-center space-x-4 pt-4 border-t border-border">
                 <Button variant="ghost" size="sm" className="relative">
                   <Heart className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs">2</span>
+                  {favoritesCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs">
+                      {favoritesCount}
+                    </span>
+                  )}
                 </Button>
-                <Button variant="ghost" size="sm" className="relative">
+                <Button variant="ghost" size="sm" className="relative" onClick={() => setShowCart(true)}>
                   <ShoppingBag className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs">0</span>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-accent rounded-full text-xs">
+                      {cartCount}
+                    </span>
+                  )}
                 </Button>
                 <Button variant="ghost" size="sm">
                   <User className="w-5 h-5" />
                 </Button>
               </div>
-              <Button className="btn-hero w-full mt-4">
+              <Button className="btn-hero w-full mt-4" onClick={() => setShowCart(true)}>
                 Commander maintenant
               </Button>
             </nav>
           </div>
         )}
       </div>
+      
+      <CartModal isOpen={showCart} onClose={() => setShowCart(false)} />
     </header>
   );
 };

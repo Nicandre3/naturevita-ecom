@@ -2,12 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Star, Eye, Zap, Shield, Leaf } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useToast } from "@/hooks/use-toast";
 import jinjaImage from "@/assets/jinja-product.jpg";
 import iruSoapImage from "@/assets/iru-soap.jpg";
 import honeyImage from "@/assets/honey-product.jpg";
 
 const ProductsSection = () => {
   const [activeCategory, setActiveCategory] = useState("all");
+  const { addToCart, addToFavorites, removeFromFavorites, isInFavorites } = useCart();
+  const { toast } = useToast();
   
   const categories = [
     { id: "all", name: "Tous nos produits", icon: Leaf },
@@ -122,6 +126,39 @@ const ProductsSection = () => {
     }
   };
 
+  const handleAddToCart = (product: any) => {
+    if (!product.inStock) return;
+    
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      category: product.category
+    });
+    
+    toast({
+      title: "Produit ajouté !",
+      description: `${product.name} a été ajouté à votre panier.`
+    });
+  };
+
+  const handleToggleFavorite = (productId: number) => {
+    if (isInFavorites(productId)) {
+      removeFromFavorites(productId);
+      toast({
+        title: "Retiré des favoris",
+        description: "Le produit a été retiré de vos favoris."
+      });
+    } else {
+      addToFavorites(productId);
+      toast({
+        title: "Ajouté aux favoris",
+        description: "Le produit a été ajouté à vos favoris."
+      });
+    }
+  };
+
   return (
     <section id="produits" className="section-padding bg-muted/30">
       <div className="container mx-auto">
@@ -187,8 +224,13 @@ const ProductsSection = () => {
 
                 {/* Actions rapides */}
                 <div className="absolute top-3 right-3 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <Button size="sm" variant="secondary" className="w-10 h-10 rounded-full p-0">
-                    <Heart className="w-4 h-4" />
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="w-10 h-10 rounded-full p-0"
+                    onClick={() => handleToggleFavorite(product.id)}
+                  >
+                    <Heart className={`w-4 h-4 ${isInFavorites(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                   </Button>
                   <Button size="sm" variant="secondary" className="w-10 h-10 rounded-full p-0">
                     <Eye className="w-4 h-4" />
@@ -252,6 +294,7 @@ const ProductsSection = () => {
                   <Button 
                     className="flex items-center space-x-2"
                     disabled={!product.inStock}
+                    onClick={() => handleAddToCart(product)}
                   >
                     <ShoppingCart className="w-4 h-4" />
                     <span>{product.inStock ? "Ajouter" : "Indisponible"}</span>
