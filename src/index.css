@@ -2,41 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* NatureVita Design System - Couleurs naturelles et organiques */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Couleurs NatureVita - Thème naturel et bio */
+    --background: 120 20% 98%;
+    --foreground: 140 25% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 120 15% 99%;
+    --card-foreground: 140 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 120 15% 99%;
+    --popover-foreground: 140 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Vert naturel principal */
+    --primary: 145 65% 35%;
+    --primary-foreground: 120 15% 99%;
+    --primary-glow: 145 60% 45%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Vert secondaire plus clair */
+    --secondary: 140 40% 92%;
+    --secondary-foreground: 145 65% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Tons neutres naturels */
+    --muted: 140 20% 95%;
+    --muted-foreground: 140 15% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Vert accent vibrant */
+    --accent: 155 70% 40%;
+    --accent-foreground: 120 15% 99%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Rouge naturel pour erreurs */
+    --destructive: 10 75% 55%;
+    --destructive-foreground: 120 15% 99%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Bordures subtiles */
+    --border: 140 25% 88%;
+    --input: 140 25% 88%;
+    --ring: 145 65% 35%;
 
-    --radius: 0.5rem;
+    /* Or naturel pour éléments premium */
+    --gold: 45 85% 60%;
+    --gold-foreground: 140 25% 15%;
+
+    /* Gradients naturels */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-hero: linear-gradient(135deg, hsl(145 65% 35%), hsl(155 70% 40%), hsl(45 85% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)), hsl(140 20% 96%));
+
+    /* Shadows organiques */
+    --shadow-soft: 0 4px 20px -8px hsl(var(--primary) / 0.2);
+    --shadow-glow: 0 0 30px hsl(var(--primary-glow) / 0.3);
+    --shadow-card: 0 8px 40px -12px hsl(var(--primary) / 0.15);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -100,6 +120,61 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    scroll-behavior: smooth;
+  }
+
+  /* Animations et effets NatureVita */
+  .parallax {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-glow);
+  }
+
+  .gradient-text {
+    background: var(--gradient-hero);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+@layer components {
+  .btn-hero {
+    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg shadow-lg hover:shadow-glow transition-all duration-300 hover:scale-105;
+  }
+
+  .card-product {
+    @apply bg-card rounded-xl p-6 shadow-card border border-border/50 hover-lift;
+    background: var(--gradient-card);
+  }
+
+  .section-padding {
+    @apply py-20 px-4 md:px-8 lg:px-12;
   }
 }
