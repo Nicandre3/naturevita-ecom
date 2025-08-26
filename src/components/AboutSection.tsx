@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Leaf, Users, Award, Facebook, Instagram, MessageCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AboutSection = () => {
+  const navigate = useNavigate();
   const values = [
     {
       icon: Leaf,
@@ -31,19 +33,34 @@ const AboutSection = () => {
       name: "Dr. Amadou Diarra",
       role: "Fondateur & Herboriste",
       description: "Expert en médecine traditionnelle africaine avec 15 ans d'expérience",
-      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face"
+      image: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300&h=300&fit=crop&crop=face",
+      socials: {
+        facebook: "https://facebook.com/amadou.diarra",
+        instagram: "https://instagram.com/dr.amadou",
+        whatsapp: "https://wa.me/221701234567"
+      }
     },
     {
       name: "Aïcha Traoré",
       role: "Responsable Qualité",
       description: "Garantit la pureté et l'authenticité de chaque produit NatureVita",
-      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face"
+      image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face",
+      socials: {
+        facebook: "https://facebook.com/aicha.traore",
+        instagram: "https://instagram.com/aicha.naturevita",
+        whatsapp: "https://wa.me/221702345678"
+      }
     },
     {
       name: "Moussa Kone",
       role: "Directeur Commercial",
       description: "Passionné par le partage des bienfaits de la nature africaine",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face"
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
+      socials: {
+        facebook: "https://facebook.com/moussa.kone",
+        instagram: "https://instagram.com/moussa.commercial",
+        whatsapp: "https://wa.me/221703456789"
+      }
     }
   ];
 
@@ -110,7 +127,10 @@ const AboutSection = () => {
               </p>
             </div>
             <div className="flex space-x-4">
-              <Button className="btn-hero">
+              <Button 
+                className="btn-hero"
+                onClick={() => navigate('/products')}
+              >
                 Découvrir nos produits
               </Button>
               <Button variant="outline">
@@ -204,9 +224,37 @@ const AboutSection = () => {
                 <Badge variant="secondary" className="mb-3">
                   {member.role}
                 </Badge>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   {member.description}
                 </p>
+                
+                {/* Liens réseaux sociaux */}
+                <div className="flex justify-center space-x-3">
+                  <a
+                    href={member.socials.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-colors"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={member.socials.instagram}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-pink-600 flex items-center justify-center text-white hover:bg-pink-700 transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                  <a
+                    href={member.socials.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-white hover:bg-green-700 transition-colors"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             ))}
           </div>

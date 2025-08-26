@@ -4,14 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Star, Eye, Zap, Shield, Leaf } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import ProductDetailsModal from "./ProductDetailsModal";
 import jinjaImage from "@/assets/jinja-product.jpg";
 import iruSoapImage from "@/assets/iru-soap.jpg";
 import honeyImage from "@/assets/honey-product.jpg";
 
 const ProductsSection = () => {
   const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { addToCart, addToFavorites, removeFromFavorites, isInFavorites } = useCart();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const categories = [
     { id: "all", name: "Tous nos produits", icon: Leaf },
@@ -159,6 +164,11 @@ const ProductsSection = () => {
     }
   };
 
+  const handleViewDetails = (product: any) => {
+    setSelectedProduct(product);
+    setIsDetailsModalOpen(true);
+  };
+
   return (
     <section id="produits" className="section-padding bg-muted/30">
       <div className="container mx-auto">
@@ -232,7 +242,12 @@ const ProductsSection = () => {
                   >
                     <Heart className={`w-4 h-4 ${isInFavorites(product.id) ? 'fill-red-500 text-red-500' : ''}`} />
                   </Button>
-                  <Button size="sm" variant="secondary" className="w-10 h-10 rounded-full p-0">
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="w-10 h-10 rounded-full p-0"
+                    onClick={() => handleViewDetails(product)}
+                  >
                     <Eye className="w-4 h-4" />
                   </Button>
                 </div>
@@ -307,10 +322,19 @@ const ProductsSection = () => {
 
         {/* CTA vers boutique complète */}
         <div className="text-center mt-16">
-          <Button className="btn-hero text-lg px-10 py-4">
+          <Button 
+            className="btn-hero text-lg px-10 py-4"
+            onClick={() => navigate('/products')}
+          >
             Voir tous nos produits
           </Button>
         </div>
+
+        <ProductDetailsModal
+          product={selectedProduct}
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+        />
       </div>
     </section>
   );

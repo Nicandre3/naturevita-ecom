@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-naturevita.jpg";
 
 const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const navigate = useNavigate();
   
   const slides = [
     {
@@ -87,7 +89,10 @@ const HeroSection = () => {
 
           {/* Actions CTA */}
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-fade-in" style={{ animationDelay: "0.8s" }}>
-            <Button className="btn-hero text-lg px-10 py-4 group">
+            <Button 
+              className="btn-hero text-lg px-10 py-4 group"
+              onClick={() => navigate('/products')}
+            >
               {slides[currentSlide].cta}
               <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>

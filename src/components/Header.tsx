@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Menu, X, ShoppingBag, Heart, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import CartModal from "./CartModal";
+import AuthModal from "./AuthModal";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const location = useLocation();
   const { cartCount, favoritesCount } = useCart();
 
@@ -79,8 +81,13 @@ const Header = () => {
                 </span>
               )}
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setIsAuthModalOpen(true)}
+            >
               <User className="w-5 h-5" />
+              <span className="hidden lg:inline ml-2">Connexion</span>
             </Button>
             <Button className="btn-hero" onClick={() => setShowCart(true)}>
               Commander
@@ -134,7 +141,11 @@ const Header = () => {
                     </span>
                   )}
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
                   <User className="w-5 h-5" />
                 </Button>
               </div>
@@ -147,6 +158,10 @@ const Header = () => {
       </div>
       
       <CartModal isOpen={showCart} onClose={() => setShowCart(false)} />
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </header>
   );
 };
