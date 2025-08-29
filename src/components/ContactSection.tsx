@@ -29,16 +29,16 @@ const ContactSection = () => {
     {
       icon: Phone,
       title: "Téléphone",
-      value: "+221 77 123 45 67",
+      value: "+237 000 000 000",
       description: "Lun-Dim 8h-20h",
-      action: "tel:+221771234567"
+      action: "tel:+237000000000"
     },
     {
       icon: MessageCircle,
       title: "WhatsApp",
-      value: "+221 77 123 45 67",
+      value: "+237 000 000 000",
       description: "Chat en temps réel",
-      action: "https://wa.me/221771234567"
+      action: "https://wa.me/237000000000"
     },
     {
       icon: Mail,
@@ -197,7 +197,7 @@ const ContactSection = () => {
             <div className="text-center">
               <Button 
                 className="btn-hero w-full text-lg"
-                onClick={() => window.open('https://wa.me/221771234567', '_blank')}
+                onClick={() => window.open('https://wa.me/23700000000', '_blank')}
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 Chatter sur WhatsApp
@@ -260,7 +260,7 @@ const ContactSection = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    placeholder="+221 77 123 45 67"
+                    placeholder="+237"
                     className="w-full"
                   />
                 </div>

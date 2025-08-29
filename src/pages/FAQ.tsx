@@ -84,7 +84,7 @@ const FAQ = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a 
-                  href="https://wa.me/+2250749586420" 
+                  href="https://wa.me/+237000000000" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="btn-hero inline-flex items-center justify-center"

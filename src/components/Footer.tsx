@@ -188,10 +188,10 @@ const Footer = () => {
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-primary" />
                 <a 
-                  href="tel:+221771234567"
+                  href="tel:+237 000000000"
                   className="text-muted-foreground hover:text-primary transition-colors duration-300"
                 >
-                  +221 77 123 45 67
+                  +237 000 000 000
                 </a>
               </div>
               <div className="flex items-center space-x-3">
@@ -206,7 +206,7 @@ const Footer = () => {
               <div className="flex items-start space-x-3">
                 <MapPin className="w-4 h-4 text-primary mt-1" />
                 <span className="text-muted-foreground">
-                  Dakar, Sénégal<br />
+                  Cameroun, Douala<br />
                   Livraison en Afrique de l'Ouest
                 </span>
               </div>
@@ -266,7 +266,7 @@ const Footer = () => {
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <span>© 2024 NatureVita. Fait avec</span>
               <Heart className="w-4 h-4 text-primary fill-primary" />
-              <span>au Sénégal</span>
+              <span>au Cameroun</span>
             </div>
           </div>
         </div>

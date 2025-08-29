@@ -34,7 +34,6 @@ export default function Admin() {
   if (!isAuthenticated) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
             <CardHeader className="text-center">
