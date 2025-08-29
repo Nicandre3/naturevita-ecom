@@ -1,6 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import { 
   BarChart, 
   Bar, 
@@ -23,35 +26,93 @@ import {
   TrendingUp, 
   TrendingDown,
   Star,
-  MessageSquare
+  MessageSquare,
+  RefreshCw,
+  Loader2
 } from "lucide-react";
+import { apiService, DashboardStats, Order, Product } from '@/services/api';
 
-const salesData = [
-  { month: "Jan", ventes: 45000, commandes: 150 },
-  { month: "Fév", ventes: 52000, commandes: 180 },
-  { month: "Mar", ventes: 48000, commandes: 165 },
-  { month: "Avr", ventes: 61000, commandes: 220 },
-  { month: "Mai", ventes: 55000, commandes: 195 },
-  { month: "Juin", ventes: 67000, commandes: 240 },
-];
+const AdminDashboard = () => {
+  const { toast } = useToast();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-const productData = [
-  { name: "Miel Pur Bio", value: 35, color: "#16a34a" },
-  { name: "Savon Iru", value: 28, color: "#eab308" },
-  { name: "Huile Jinja", value: 22, color: "#dc2626" },
-  { name: "Autres", value: 15, color: "#6b7280" },
-];
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [dashboardStats, orders, products] = await Promise.all([
+        apiService.getDashboardStats(),
+        apiService.getOrders(),
+        apiService.getProducts()
+      ]);
 
-const recentOrders = [
-  { id: "#CMD001", client: "Marie Dubois", produit: "Miel Pur Bio", montant: 25000, statut: "Livré" },
-  { id: "#CMD002", client: "Jean Kouame", produit: "Savon Iru", montant: 8000, statut: "En cours" },
-  { id: "#CMD003", client: "Fatou Traore", produit: "Huile Jinja", montant: 15000, statut: "Préparation" },
-  { id: "#CMD004", client: "Paul Diallo", produit: "Pack Découverte", montant: 45000, statut: "Livré" },
-];
+      setStats(dashboardStats);
+      // Prendre les 5 dernières commandes
+      setRecentOrders(orders.slice(0, 5));
+      // Filtrer les produits en rupture de stock
+      setLowStockProducts(products.filter(p => p.stock < 10));
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les données du dashboard",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-export function AdminDashboard() {
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      pending: 'destructive',
+      processing: 'default',
+      shipped: 'secondary',
+      delivered: 'default'
+    };
+    
+    const labels = {
+      pending: 'En attente',
+      processing: 'En cours',
+      shipped: 'Expédié',
+      delivered: 'Livré'
+    };
+
+    return (
+      <Badge variant={variants[status as keyof typeof variants] as any}>
+        {labels[status as keyof typeof labels]}
+      </Badge>
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Chargement du dashboard...</span>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return <div>Erreur lors du chargement des données</div>;
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Dashboard Administrateur</h1>
+        <Button variant="outline" className="gap-2" onClick={fetchDashboardData} disabled={loading}>
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Actualiser
+        </Button>
+      </div>
+
       {/* KPIs */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -60,7 +121,7 @@ export function AdminDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">328,000 FCFA</div>
+            <div className="text-2xl font-bold">{stats.totalRevenue.toLocaleString()} FCFA</div>
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center text-emerald-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -77,7 +138,7 @@ export function AdminDashboard() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">240</div>
+            <div className="text-2xl font-bold">{stats.totalOrders}</div>
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center text-emerald-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -94,24 +155,23 @@ export function AdminDashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center text-red-600">
                 <TrendingDown className="h-3 w-3 mr-1" />
-                -3.1%
+                {stats.lowStockCount} en rupture
               </span>
-              {" "}depuis le mois dernier
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Clients Actifs</CardTitle>
+            <CardTitle className="text-sm font-medium">Ventes Totales</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">156</div>
+            <div className="text-2xl font-bold">{stats.totalSales}</div>
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center text-emerald-600">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -127,19 +187,19 @@ export function AdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Évolution des Ventes</CardTitle>
+            <CardTitle>Évolution des Revenus</CardTitle>
             <CardDescription>Revenus mensuels en FCFA</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={salesData}>
+              <LineChart data={stats.monthlyRevenue}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`${value} FCFA`, "Ventes"]} />
+                <Tooltip formatter={(value) => [`${value} FCFA`, "Revenus"]} />
                 <Line 
                   type="monotone" 
-                  dataKey="ventes" 
+                  dataKey="revenue" 
                   stroke="hsl(var(--primary))" 
                   strokeWidth={2}
                   dot={{ fill: "hsl(var(--primary))" }}
@@ -151,28 +211,18 @@ export function AdminDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Répartition des Produits</CardTitle>
-            <CardDescription>Ventes par catégorie de produits</CardDescription>
+            <CardTitle>Top Produits</CardTitle>
+            <CardDescription>Meilleures ventes</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={productData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {productData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
+              <BarChart data={stats.topProducts}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
                 <Tooltip />
-              </PieChart>
+                <Bar dataKey="sales" fill="hsl(var(--primary))" />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -191,20 +241,12 @@ export function AdminDashboard() {
                 <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{order.id}</p>
-                    <p className="text-xs text-muted-foreground">{order.client}</p>
-                    <p className="text-xs">{order.produit}</p>
+                    <p className="text-xs text-muted-foreground">{order.customerName}</p>
+                    <p className="text-xs">{order.products?.length || 0} article(s)</p>
                   </div>
                   <div className="text-right space-y-1">
-                    <p className="text-sm font-medium">{order.montant.toLocaleString()} FCFA</p>
-                    <Badge 
-                      variant={
-                        order.statut === "Livré" ? "default" : 
-                        order.statut === "En cours" ? "secondary" : 
-                        "outline"
-                      }
-                    >
-                      {order.statut}
-                    </Badge>
+                    <p className="text-sm font-medium">{order.total.toLocaleString()} FCFA</p>
+                    {getStatusBadge(order.status)}
                   </div>
                 </div>
               ))}
@@ -219,28 +261,32 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="p-3 border border-red-200 bg-red-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-900">Stock Faible</span>
+              {stats.lowStockCount > 0 && (
+                <div className="p-3 border border-red-200 bg-red-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="h-4 w-4 text-red-600" />
+                    <span className="text-sm font-medium text-red-900">Stock Faible</span>
+                  </div>
+                  <p className="text-xs text-red-800">{stats.lowStockCount} produits ont un stock faible</p>
                 </div>
-                <p className="text-xs text-red-800">3 produits ont un stock inférieur à 10 unités</p>
-              </div>
+              )}
 
-              <div className="p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Star className="h-4 w-4 text-yellow-600" />
-                  <span className="text-sm font-medium text-yellow-900">Nouveaux Avis</span>
+              {stats.pendingOrders > 0 && (
+                <div className="p-3 border border-yellow-200 bg-yellow-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="h-4 w-4 text-yellow-600" />
+                    <span className="text-sm font-medium text-yellow-900">Commandes en attente</span>
+                  </div>
+                  <p className="text-xs text-yellow-800">{stats.pendingOrders} commandes à traiter</p>
                 </div>
-                <p className="text-xs text-yellow-800">5 nouveaux avis clients à modérer</p>
-              </div>
+              )}
 
               <div className="p-3 border border-blue-200 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <MessageSquare className="h-4 w-4 text-blue-600" />
                   <span className="text-sm font-medium text-blue-900">Messages</span>
                 </div>
-                <p className="text-xs text-blue-800">8 nouveaux messages de contact</p>
+                <p className="text-xs text-blue-800">Vérifiez les nouveaux messages de contact</p>
               </div>
 
               <div className="space-y-2">
@@ -250,7 +296,7 @@ export function AdminDashboard() {
                 </div>
                 <Progress value={73} className="h-2" />
                 <p className="text-xs text-muted-foreground">
-                  240 000 FCFA restant pour atteindre l'objectif
+                  Progression vers l'objectif mensuel
                 </p>
               </div>
             </div>
@@ -259,4 +305,6 @@ export function AdminDashboard() {
       </div>
     </div>
   );
-}
+};
+
+export default AdminDashboard;

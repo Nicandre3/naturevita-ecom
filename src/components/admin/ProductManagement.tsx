@@ -1,86 +1,98 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Package, Search, Filter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Upload,
+  Search,
+  Filter,
+  Loader2,
+  Package
+} from 'lucide-react';
+import { apiService, Product } from '@/services/api';
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string;
-  status: "actif" | "inactif";
-  image?: string;
-}
-
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Miel Pur Bio",
-    description: "Miel naturel de qualité supérieure, récolté dans nos ruches biologiques",
-    price: 25000,
-    stock: 45,
-    category: "miel",
-    status: "actif",
-    image: "/src/assets/honey-product.jpg"
-  },
-  {
-    id: "2",
-    name: "Savon Iru Traditionnel",
-    description: "Savon artisanal à base d'ingrédients naturels locaux",
-    price: 8000,
-    stock: 120,
-    category: "savon",
-    status: "actif",
-    image: "/src/assets/iru-soap.jpg"
-  },
-  {
-    id: "3",
-    name: "Huile Jinja Premium",
-    description: "Huile naturelle aux propriétés thérapeutiques exceptionnelles",
-    price: 15000,
-    stock: 8,
-    category: "huile",
-    status: "actif",
-    image: "/src/assets/jinja-product.jpg"
-  },
-];
-
-export function ProductManagement() {
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
+const ProductManagement = () => {
   const { toast } = useToast();
-
-  const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({
-    name: "",
-    description: "",
-    price: 0,
-    stock: 0,
-    category: "",
-    status: "actif"
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    price: '',
+    stock: '',
+    category: '',
+    description: '',
+    image: ''
   });
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || product.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const fetchedProducts = await apiService.getProducts();
+      setProducts(fetchedProducts);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les produits",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleAddProduct = () => {
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     if (!newProduct.name || !newProduct.price || !newProduct.category) {
       toast({
         title: "Erreur",
@@ -90,55 +102,139 @@ export function ProductManagement() {
       return;
     }
 
-    const product: Product = {
-      ...newProduct,
-      id: Date.now().toString(),
-    };
+    try {
+      setSaving(true);
+      
+      const productData = {
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        stock: parseInt(newProduct.stock),
+        status: 'active' as const
+      };
 
-    setProducts([...products, product]);
+      if (editingProduct) {
+        // Modifier le produit existant
+        await apiService.updateProduct(editingProduct.id, productData);
+        toast({
+          title: "Succès",
+          description: "Produit modifié avec succès"
+        });
+      } else {
+        // Ajouter un nouveau produit
+        await apiService.createProduct(productData);
+        toast({
+          title: "Succès",
+          description: "Produit ajouté avec succès"
+        });
+      }
+      
+      // Recharger les produits
+      await fetchProducts();
+      
+      // Réinitialiser le formulaire
+      setNewProduct({
+        name: '',
+        price: '',
+        stock: '',
+        category: '',
+        description: '',
+        image: ''
+      });
+      setEditingProduct(null);
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de sauvegarder le produit",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
     setNewProduct({
-      name: "",
-      description: "",
-      price: 0,
-      stock: 0,
-      category: "",
-      status: "actif"
+      name: product.name,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      category: product.category,
+      description: product.description || '',
+      image: product.image
     });
-    setIsAddModalOpen(false);
-    
-    toast({
-      title: "Produit ajouté",
-      description: "Le produit a été ajouté avec succès",
-    });
+    setIsDialogOpen(true);
   };
 
-  const handleEditProduct = () => {
-    if (!editingProduct) return;
-
-    setProducts(products.map(p => p.id === editingProduct.id ? editingProduct : p));
-    setEditingProduct(null);
-    
-    toast({
-      title: "Produit modifié",
-      description: "Le produit a été modifié avec succès",
-    });
+  const handleDelete = async (productId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+      try {
+        await apiService.deleteProduct(productId);
+        toast({
+          title: "Succès",
+          description: "Produit supprimé avec succès"
+        });
+        await fetchProducts();
+      } catch (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer le produit",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast({
-      title: "Produit supprimé",
-      description: "Le produit a été supprimé avec succès",
-    });
+  const toggleProductStatus = async (productId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      await apiService.updateProduct(productId, { status: newStatus });
+      toast({
+        title: "Succès",
+        description: "Statut du produit mis à jour"
+      });
+      await fetchProducts();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour le statut",
+        variant: "destructive"
+      });
+    }
   };
 
-  const toggleProductStatus = (id: string) => {
-    setProducts(products.map(p => 
-      p.id === id 
-        ? { ...p, status: p.status === "actif" ? "inactif" : "actif" }
-        : p
-    ));
+  const handleImageUpload = async (file: File) => {
+    try {
+      const response = await apiService.uploadImage(file);
+      setNewProduct({ ...newProduct, image: response.url });
+      toast({
+        title: "Succès",
+        description: "Image uploadée avec succès"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de l'upload de l'image",
+        variant: "destructive"
+      });
+    }
   };
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Chargement des produits...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -148,21 +244,33 @@ export function ProductManagement() {
           <p className="text-muted-foreground">Gérez votre catalogue de produits</p>
         </div>
         
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => {
+              setEditingProduct(null);
+              setNewProduct({
+                name: '',
+                price: '',
+                stock: '',
+                category: '',
+                description: '',
+                image: ''
+              });
+            }}>
               <Plus className="w-4 h-4 mr-2" />
               Ajouter un produit
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Ajouter un nouveau produit</DialogTitle>
+              <DialogTitle>
+                {editingProduct ? 'Modifier le produit' : 'Ajouter un nouveau produit'}
+              </DialogTitle>
               <DialogDescription>
                 Remplissez les informations du produit
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nom du produit *</Label>
@@ -171,6 +279,7 @@ export function ProductManagement() {
                     value={newProduct.name}
                     onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
                     placeholder="Nom du produit"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -179,8 +288,9 @@ export function ProductManagement() {
                     id="price"
                     type="number"
                     value={newProduct.price}
-                    onChange={(e) => setNewProduct({...newProduct, price: Number(e.target.value)})}
+                    onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
                     placeholder="Prix"
+                    required
                   />
                 </div>
               </div>
@@ -220,20 +330,43 @@ export function ProductManagement() {
                     id="stock"
                     type="number"
                     value={newProduct.stock}
-                    onChange={(e) => setNewProduct({...newProduct, stock: Number(e.target.value)})}
+                    onChange={(e) => setNewProduct({...newProduct, stock: e.target.value})}
                     placeholder="Quantité en stock"
                   />
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleAddProduct}>
-                Ajouter le produit
-              </Button>
-            </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image">Image du produit</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="image"
+                    value={newProduct.image}
+                    onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
+                    placeholder="URL de l'image"
+                  />
+                  <Button type="button" variant="outline">
+                    <Upload className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingProduct ? 'Modification...' : 'Ajout...'}
+                    </>
+                  ) : (
+                    editingProduct ? 'Modifier le produit' : 'Ajouter le produit'
+                  )}
+                </Button>
+              </div>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -320,112 +453,22 @@ export function ProductManagement() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleProductStatus(product.id)}
+                      onClick={() => toggleProductStatus(product.id, product.status)}
                     >
-                      <Badge variant={product.status === "actif" ? "default" : "secondary"}>
-                        {product.status}
+                      <Badge variant={product.status === "active" ? "default" : "secondary"}>
+                        {product.status === "active" ? "Actif" : "Inactif"}
                       </Badge>
                     </Button>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setEditingProduct(product)}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Modifier le produit</DialogTitle>
-                          </DialogHeader>
-                          {editingProduct && (
-                            <div className="grid gap-4 py-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label>Nom du produit</Label>
-                                  <Input
-                                    value={editingProduct.name}
-                                    onChange={(e) => setEditingProduct({
-                                      ...editingProduct, 
-                                      name: e.target.value
-                                    })}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>Prix (FCFA)</Label>
-                                  <Input
-                                    type="number"
-                                    value={editingProduct.price}
-                                    onChange={(e) => setEditingProduct({
-                                      ...editingProduct, 
-                                      price: Number(e.target.value)
-                                    })}
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="space-y-2">
-                                <Label>Description</Label>
-                                <Textarea
-                                  value={editingProduct.description}
-                                  onChange={(e) => setEditingProduct({
-                                    ...editingProduct, 
-                                    description: e.target.value
-                                  })}
-                                  rows={3}
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                  <Label>Stock</Label>
-                                  <Input
-                                    type="number"
-                                    value={editingProduct.stock}
-                                    onChange={(e) => setEditingProduct({
-                                      ...editingProduct, 
-                                      stock: Number(e.target.value)
-                                    })}
-                                  />
-                                </div>
-                                <div className="space-y-2">
-                                  <Label>Catégorie</Label>
-                                  <Select
-                                    value={editingProduct.category}
-                                    onValueChange={(value) => setEditingProduct({
-                                      ...editingProduct, 
-                                      category: value
-                                    })}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="miel">Miel</SelectItem>
-                                      <SelectItem value="savon">Savon</SelectItem>
-                                      <SelectItem value="huile">Huile</SelectItem>
-                                      <SelectItem value="pack">Pack</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setEditingProduct(null)}>
-                              Annuler
-                            </Button>
-                            <Button onClick={handleEditProduct}>
-                              Enregistrer
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(product)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
                       
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -443,7 +486,7 @@ export function ProductManagement() {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Annuler</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => handleDeleteProduct(product.id)}
+                              onClick={() => handleDelete(product.id)}
                               className="bg-red-600 hover:bg-red-700"
                             >
                               Supprimer
@@ -461,4 +504,6 @@ export function ProductManagement() {
       </Card>
     </div>
   );
-}
+};
+
+export default ProductManagement;

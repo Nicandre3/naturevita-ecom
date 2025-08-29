@@ -1,130 +1,141 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Star, Check, X, Search, Filter, Eye } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { 
+  Star, 
+  Check, 
+  X, 
+  Search, 
+  Filter, 
+  Eye,
+  Loader2 
+} from 'lucide-react';
+import { apiService, Review } from '@/services/api';
 
-interface Review {
-  id: string;
-  productName: string;
-  customerName: string;
-  email: string;
-  rating: number;
-  comment: string;
-  date: string;
-  status: "en_attente" | "approuve" | "rejete";
-}
-
-const mockReviews: Review[] = [
-  {
-    id: "1",
-    productName: "Miel Pur Bio",
-    customerName: "Marie Dubois",
-    email: "marie.dubois@email.com",
-    rating: 5,
-    comment: "Excellent produit ! Le miel est délicieux et de très bonne qualité. Je recommande vivement.",
-    date: "2024-01-15",
-    status: "en_attente"
-  },
-  {
-    id: "2",
-    productName: "Savon Iru Traditionnel",
-    customerName: "Jean Kouame",
-    email: "jean.kouame@email.com",
-    rating: 4,
-    comment: "Très bon savon naturel. Ma peau est plus douce depuis que je l'utilise.",
-    date: "2024-01-14",
-    status: "approuve"
-  },
-  {
-    id: "3",
-    productName: "Huile Jinja Premium",
-    customerName: "Fatou Traore",
-    email: "fatou.traore@email.com",
-    rating: 5,
-    comment: "Produit exceptionnel ! L'huile a vraiment aidé à améliorer ma peau. Merci NatureVita !",
-    date: "2024-01-13",
-    status: "approuve"
-  },
-  {
-    id: "4",
-    productName: "Miel Pur Bio",
-    customerName: "Paul Diallo",
-    email: "paul.diallo@email.com",
-    rating: 2,
-    comment: "Le produit n'était pas conforme à mes attentes. Déçu de cet achat.",
-    date: "2024-01-12",
-    status: "en_attente"
-  },
-  {
-    id: "5",
-    productName: "Savon Iru Traditionnel",
-    customerName: "Aminata Cisse",
-    email: "aminata.cisse@email.com",
-    rating: 5,
-    comment: "Super savon ! Texture agréable et parfum naturel. Je rachèterai certainement.",
-    date: "2024-01-11",
-    status: "en_attente"
-  }
-];
-
-export function ReviewsManagement() {
-  const [reviews, setReviews] = useState<Review[]>(mockReviews);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [filterRating, setFilterRating] = useState("all");
+const ReviewsManagement = () => {
   const { toast } = useToast();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterRating, setFilterRating] = useState('all');
+
+  const fetchReviews = async () => {
+    try {
+      setLoading(true);
+      const fetchedReviews = await apiService.getReviews();
+      setReviews(fetchedReviews);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les avis",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
 
   const filteredReviews = reviews.filter(review => {
-    const matchesSearch = review.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         review.comment.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || review.status === filterStatus;
-    const matchesRating = filterRating === "all" || review.rating.toString() === filterRating;
+    const matchesSearch = review.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         review.comment.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         review.customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || review.status === filterStatus;
+    const matchesRating = filterRating === 'all' || review.rating.toString() === filterRating;
     return matchesSearch && matchesStatus && matchesRating;
   });
 
-  const approveReview = (id: string) => {
-    setReviews(reviews.map(review => 
-      review.id === id ? { ...review, status: "approuve" as const } : review
-    ));
-    toast({
-      title: "Avis approuvé",
-      description: "L'avis a été approuvé et sera visible publiquement",
-    });
+  const approveReview = async (id: string) => {
+    try {
+      await apiService.updateReviewStatus(id, 'approved');
+      toast({
+        title: "Succès",
+        description: "Avis approuvé avec succès"
+      });
+      await fetchReviews();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible d'approuver l'avis",
+        variant: "destructive"
+      });
+    }
   };
 
-  const rejectReview = (id: string) => {
-    setReviews(reviews.map(review => 
-      review.id === id ? { ...review, status: "rejete" as const } : review
-    ));
-    toast({
-      title: "Avis rejeté",
-      description: "L'avis a été rejeté et ne sera pas affiché publiquement",
-      variant: "destructive"
-    });
+  const rejectReview = async (id: string) => {
+    try {
+      await apiService.updateReviewStatus(id, 'rejected');
+      toast({
+        title: "Succès",
+        description: "Avis rejeté avec succès"
+      });
+      await fetchReviews();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de rejeter l'avis",
+        variant: "destructive"
+      });
+    }
   };
 
-  const deleteReview = (id: string) => {
-    setReviews(reviews.filter(review => review.id !== id));
-    toast({
-      title: "Avis supprimé",
-      description: "L'avis a été supprimé définitivement",
-    });
+  const deleteReview = async (id: string) => {
+    try {
+      await apiService.deleteReview(id);
+      toast({
+        title: "Succès",
+        description: "Avis supprimé avec succès"
+      });
+      await fetchReviews();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'avis",
+        variant: "destructive"
+      });
+    }
   };
 
-  const getStatusBadge = (status: Review["status"]) => {
+  const getStatusBadge = (status: Review['status']) => {
     switch (status) {
-      case "approuve":
+      case "approved":
         return <Badge className="bg-green-100 text-green-800">Approuvé</Badge>;
-      case "rejete":
+      case "rejected":
         return <Badge variant="destructive">Rejeté</Badge>;
-      case "en_attente":
+      case "pending":
         return <Badge variant="secondary">En attente</Badge>;
     }
   };
@@ -140,9 +151,18 @@ export function ReviewsManagement() {
     ));
   };
 
-  const pendingCount = reviews.filter(r => r.status === "en_attente").length;
-  const approvedCount = reviews.filter(r => r.status === "approuve").length;
-  const rejectedCount = reviews.filter(r => r.status === "rejete").length;
+  const pendingCount = reviews.filter(r => r.status === "pending").length;
+  const approvedCount = reviews.filter(r => r.status === "approved").length;
+  const rejectedCount = reviews.filter(r => r.status === "rejected").length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Chargement des avis...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -212,9 +232,9 @@ export function ReviewsManagement() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="en_attente">En attente</SelectItem>
-                <SelectItem value="approuve">Approuvés</SelectItem>
-                <SelectItem value="rejete">Rejetés</SelectItem>
+                <SelectItem value="pending">En attente</SelectItem>
+                <SelectItem value="approved">Approuvés</SelectItem>
+                <SelectItem value="rejected">Rejetés</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filterRating} onValueChange={setFilterRating}>
@@ -260,11 +280,11 @@ export function ReviewsManagement() {
                   <TableCell>
                     <div>
                       <p className="font-medium">{review.customerName}</p>
-                      <p className="text-sm text-muted-foreground">{review.email}</p>
+                      <p className="text-sm text-muted-foreground">{review.customerEmail}</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{review.productName}</Badge>
+                    <Badge variant="outline">Produit #{review.productId}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
@@ -276,14 +296,14 @@ export function ReviewsManagement() {
                     <p className="line-clamp-2 text-sm">{review.comment}</p>
                   </TableCell>
                   <TableCell>
-                    {new Date(review.date).toLocaleDateString("fr-FR")}
+                    {new Date(review.createdAt).toLocaleDateString("fr-FR")}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(review.status)}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
-                      {review.status === "en_attente" && (
+                      {review.status === "pending" && (
                         <>
                           <Button
                             variant="ghost"
@@ -337,4 +357,6 @@ export function ReviewsManagement() {
       </Card>
     </div>
   );
-}
+};
+
+export default ReviewsManagement;
